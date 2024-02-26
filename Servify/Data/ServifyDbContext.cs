@@ -10,10 +10,7 @@ namespace Servify.Data
 
         }
 
-        public DbSet<Booking> Bookings { get; set; }
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<Service> Services { get; set; }
-        public DbSet<Models.ServiceProvider> ServiceProviders { get; set; }
+        public DbSet<Restaurant> Restaurants{ get; set; }
+        public DbSet<Employee> Employees{ get; set; }
     }
 }

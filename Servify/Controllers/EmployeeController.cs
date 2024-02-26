@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Servify.Data;
 using Servify.DTOs;
@@ -53,6 +54,7 @@ namespace Servify.Controllers
 
         // POST api/<EmployeeController>
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Post([FromBody] EmployeeDto employeeDto)
         {
 
@@ -86,57 +88,59 @@ namespace Servify.Controllers
             return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
         }
 
-            // PUT api/<EmployeeController>/5
-            [HttpPut("{id}")]
-            public async Task<IActionResult> Put(int id, [FromBody] EmployeeDto employeeDto)
+        // PUT api/<EmployeeController>/5
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> Put(int id, [FromBody] EmployeeDto employeeDto)
+        {
+            if (id != employeeDto.Id)
             {
-                if (id != employeeDto.Id)
-                {
-                    return BadRequest("Id in URL does not match Id in body");
-                }
+                return BadRequest("Id in URL does not match Id in body");
+            }
 
-                var employee = await _context.Employees.FindAsync(id);
-                if (employee == null)
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            var restaurant = await _context.Restaurants.FindAsync(employeeDto.restaurantId);
+            if (restaurant == null)
+            {
+                return BadRequest("Invalid RestaurantId");
+            }
+
+            employee.Name = employeeDto.Name;
+            employee.Position = employeeDto.Position;
+            employee.Salary = employeeDto.Salary;
+            employee.RestaurantId = employeeDto.restaurantId;
+            employee.Restaurant = restaurant;
+            employee.UpdateDate = DateTime.Now;
+
+            _context.Entry(employee).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!EmployeeExists(id))
                 {
                     return NotFound();
                 }
-
-                var restaurant = await _context.Restaurants.FindAsync(employeeDto.restaurantId);
-                if (restaurant == null)
+                else
                 {
-                    return BadRequest("Invalid RestaurantId");
+                    throw;
                 }
-
-                employee.Name = employeeDto.Name;
-                employee.Position = employeeDto.Position;
-                employee.Salary = employeeDto.Salary;
-                employee.RestaurantId = employeeDto.restaurantId;
-                employee.Restaurant = restaurant;
-                employee.UpdateDate = DateTime.Now;
-
-                _context.Entry(employee).State = EntityState.Modified;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EmployeeExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-                return NoContent();
             }
+
+            return NoContent();
+        }
 
         // DELETE api/<EmployeeController>/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var employee = await _context.Employees.FindAsync(id);

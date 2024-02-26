@@ -53,6 +53,7 @@ namespace Servify.Controllers
 
         // POST api/<Restaurant>
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Post([FromBody] RestaurantDto restaurantDto)
         {
             var restaurant = new Restaurant
@@ -72,6 +73,7 @@ namespace Servify.Controllers
 
         // PUT api/<Restaurant>/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> Put(int id, [FromBody] RestaurantDto restaurantDto)
         {
             if (id != restaurantDto.Id)
@@ -112,6 +114,7 @@ namespace Servify.Controllers
 
         // DELETE api/<Restaurant>/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var restaurant = await _context.Restaurants.FindAsync(id);

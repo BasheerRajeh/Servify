@@ -8,6 +8,7 @@ namespace Servify.DTOs
         public string Name { get; set; } = String.Empty;
         public string Position { get; set; } = String.Empty;
         public decimal Salary { get; set; }
+        public int restaurantId { get; set; }
 
         public static EmployeeDto MapToDto(Employee employee)
         {

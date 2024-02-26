@@ -24,7 +24,7 @@ namespace Servify.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RestaurantDto>>> Get()
         {
-            var restaurants = await _context.Restaurants.ToListAsync();
+            var restaurants = await _context.Restaurants.Include(_ => _.Employees).ToListAsync();
 
             if (restaurants == null || !restaurants.Any())
             {

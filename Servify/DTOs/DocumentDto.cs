@@ -1,11 +1,9 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Servify.Models
+namespace Servify.DTOs
 {
-    public class Document: BaseEntity<int>
+    public class DocumentDto
     {
-
         [Required(ErrorMessage = "File name is required.")]
         [StringLength(255, ErrorMessage = "File name must be at most 255 characters long.")]
         public string FileName { get; set; }
@@ -13,13 +11,11 @@ namespace Servify.Models
         [Required(ErrorMessage = "File path is required.")]
         public string FilePath { get; set; }
 
-        [Required(ErrorMessage = "UserId is required.")]
+        [Required(ErrorMessage = "User ID is required.")]
         public Guid UserId { get; set; }
 
-        public User User { get; set; }
-
         [Required(ErrorMessage = "File size is required.")]
-        [Range(0, int.MaxValue, ErrorMessage = "Invalid file size.")]
+        [Range(0, long.MaxValue, ErrorMessage = "Invalid file size.")]
         public long FileSize { get; set; }
     }
 

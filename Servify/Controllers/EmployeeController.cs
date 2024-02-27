@@ -28,7 +28,7 @@ namespace Servify.Controllers
             [FromQuery] decimal? maxSalary,
             [FromQuery] string? position,
             [FromQuery] int? restaurantId,
-            [FromQuery] string? name, 
+            [FromQuery] string? name,
             [FromQuery] string? sortBy = "name",
             [FromQuery] string sortOrder = "asc")
         {
@@ -112,6 +112,19 @@ namespace Servify.Controllers
         [Authorize]
         public async Task<IActionResult> Post([FromBody] EmployeeDto employeeDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                       .SelectMany(v => v.Errors)
+                       .Select(e => e.ErrorMessage)
+                       .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
 
             if (employeeDto == null)
             {
@@ -148,6 +161,20 @@ namespace Servify.Controllers
         [Authorize]
         public async Task<IActionResult> Put(int id, [FromBody] EmployeeDto employeeDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                       .SelectMany(v => v.Errors)
+                       .Select(e => e.ErrorMessage)
+                       .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
+
             if (id != employeeDto.Id)
             {
                 return BadRequest("Id in URL does not match Id in body");

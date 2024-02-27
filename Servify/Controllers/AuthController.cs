@@ -31,6 +31,19 @@ namespace Servify.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto registerUserDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
             var userExist = await _userManager.FindByNameAsync(registerUserDto.Username);
             if (userExist != null)
             {
@@ -56,6 +69,20 @@ namespace Servify.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                       .SelectMany(v => v.Errors)
+                       .Select(e => e.ErrorMessage)
+                       .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
+
             var user = await _userManager.FindByNameAsync(loginUserDto.Username);
             if (user != null && await _userManager.CheckPasswordAsync(user, loginUserDto.Password))
             {

@@ -57,6 +57,20 @@ namespace Servify.Controllers
         [Authorize]
         public async Task<IActionResult> Post([FromBody] RestaurantDto restaurantDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                       .SelectMany(v => v.Errors)
+                       .Select(e => e.ErrorMessage)
+                       .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
+
             var restaurant = new Restaurant
             {
                 Name = restaurantDto.Name,
@@ -77,6 +91,20 @@ namespace Servify.Controllers
         [Authorize]
         public async Task<IActionResult> Put(int id, [FromBody] RestaurantDto restaurantDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = ModelState.Values
+                       .SelectMany(v => v.Errors)
+                       .Select(e => e.ErrorMessage)
+                       .FirstOrDefault();
+
+                return BadRequest(new Response
+                {
+                    Status = "Error",
+                    Message = errorMessage ?? "Invalid employee data",
+                });
+            }
+
             if (id != restaurantDto.Id)
             {
                 return BadRequest("Mismatched id in request body and URI");

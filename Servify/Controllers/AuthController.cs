@@ -20,12 +20,14 @@ namespace Servify.Controllers
         private readonly UserManager<User> _userManager;
         private readonly ServifyDbContext _context;
         private readonly IConfiguration _config;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ServifyDbContext context, IConfiguration config, UserManager<User> userManager)
+        public AuthController(ServifyDbContext context, IConfiguration config, UserManager<User> userManager, ILogger<AuthController> logger)
         {
             _context = context;
             _config = config;
             _userManager = userManager;
+            _logger = logger;
         }
 
         [HttpPost("Register")]
@@ -37,7 +39,7 @@ namespace Servify.Controllers
                         .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage)
                         .FirstOrDefault();
-
+                _logger.LogError($"Enter a valid inputs");
                 return BadRequest(new Response
                 {
                     Status = "Error",
@@ -47,6 +49,7 @@ namespace Servify.Controllers
             var userExist = await _userManager.FindByNameAsync(registerUserDto.Username);
             if (userExist != null)
             {
+                _logger.LogError($"Faild to create user already exists");
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists" });
             }
 
@@ -60,9 +63,12 @@ namespace Servify.Controllers
             var result = await _userManager.CreateAsync(user, registerUserDto.Password);
             if (!result.Succeeded)
             {
+                _logger.LogError($"Internal Error: Faild to create user");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Faild to create a user." });
             }
 
+            _logger.LogInformation($"User ${user.UserName} Created Successfully");
             return Ok(new Response { Status = "Success", Message = "User Created Successfully" });
         }
 
@@ -75,7 +81,7 @@ namespace Servify.Controllers
                        .SelectMany(v => v.Errors)
                        .Select(e => e.ErrorMessage)
                        .FirstOrDefault();
-
+                _logger.LogError($"Enter a valid inputs");
                 return BadRequest(new Response
                 {
                     Status = "Error",
@@ -111,6 +117,7 @@ namespace Servify.Controllers
                         signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
+                _logger.LogInformation($"User ${user.UserName} Login Successfully");
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),

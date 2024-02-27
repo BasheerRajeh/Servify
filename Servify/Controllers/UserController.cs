@@ -16,10 +16,12 @@ namespace Servify.Controllers
     public class UserController : ControllerBase
     {
         private readonly ServifyDbContext _context;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(ServifyDbContext context)
+        public UserController(ServifyDbContext context, ILogger<UserController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -53,11 +55,13 @@ namespace Servify.Controllers
                 _context.Documents.Add(document);
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation($"${document.FileName} uploaded to server");
                 return Ok(new { message = "File uploaded successfully", document});
             }
             catch (Exception ex)
             {
                 // Log the exception
+                _logger.LogError("Internal Server Error");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -129,7 +133,6 @@ namespace Servify.Controllers
         {
             if (!Guid.TryParse(userIdString, out Guid userId))
             {
-                // Handle invalid userIdString here, such as returning null or throwing an exception
                 return null;
             }
 

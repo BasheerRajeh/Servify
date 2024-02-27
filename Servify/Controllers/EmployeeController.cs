@@ -14,10 +14,11 @@ namespace Servify.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly ServifyDbContext _context;
-
-        public EmployeeController(ServifyDbContext context)
+        private readonly ILogger<EmployeeController> _logger;
+        public EmployeeController(ServifyDbContext context, ILogger<EmployeeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
 
@@ -128,12 +129,14 @@ namespace Servify.Controllers
 
             if (employeeDto == null)
             {
+                _logger.LogError($"Empty employee can not be created");
                 return BadRequest("Employee data is null");
             }
 
             var restaurant = await _context.Restaurants.FindAsync(employeeDto.restaurantId);
             if (restaurant == null)
             {
+                _logger.LogError($"Invalid resturant reference id");
                 return BadRequest("Invalid RestaurantId");
             }
 
@@ -153,6 +156,7 @@ namespace Servify.Controllers
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Employee ${employee.Name} added successfully to restaruant ${restaurant.Name}");
             return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
         }
 
@@ -234,6 +238,7 @@ namespace Servify.Controllers
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Employee ${employee.Name} removed successfully");
             return NoContent();
         }
 

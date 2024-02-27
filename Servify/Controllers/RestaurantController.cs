@@ -15,10 +15,12 @@ namespace Servify.Controllers
     public class RestaurantController : ControllerBase
     {
         private readonly ServifyDbContext _context;
+        private readonly ILogger<RestaurantController> _logger;
 
-        public RestaurantController(ServifyDbContext context)
+        public RestaurantController(ServifyDbContext context, ILogger<RestaurantController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/<Restaurant>
@@ -64,6 +66,7 @@ namespace Servify.Controllers
                        .Select(e => e.ErrorMessage)
                        .FirstOrDefault();
 
+                _logger.LogError($"Invalid data");
                 return BadRequest(new Response
                 {
                     Status = "Error",
@@ -82,6 +85,7 @@ namespace Servify.Controllers
             _context.Restaurants.Add(restaurant);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"${restaurant.Name} Restaurant created successfully");
             return CreatedAtAction(nameof(Get), new { id = restaurant.Id }, restaurant);
 
         }
@@ -125,6 +129,7 @@ namespace Servify.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"${restaurant} restaurant has been updated");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -155,6 +160,7 @@ namespace Servify.Controllers
             _context.Restaurants.Remove(restaurant);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"${restaurant} restaurant has been removed");
             return NoContent();
         }
         

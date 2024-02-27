@@ -23,18 +23,55 @@ namespace Servify.Controllers
 
         // GET: api/<EmployeeController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> Get()
+        public ActionResult<IEnumerable<EmployeeDto>> Get(
+            [FromQuery] decimal? minSalary,
+            [FromQuery] decimal? maxSalary,
+            [FromQuery] string? position,
+            [FromQuery] int? restaurantId,
+            [FromQuery] string? name)
         {
-            var employees = await _context.Employees.ToListAsync();
+
+            IQueryable<Employee> query = _context.Employees;
+
+            // Filter by minimum salary if provided
+            if (minSalary.HasValue)
+            {
+                query = query.Where(e => e.Salary >= minSalary);
+            }
+
+            // Filter by maximum salary if provided
+            if (maxSalary.HasValue)
+            {
+                query = query.Where(e => e.Salary <= maxSalary);
+            }
+
+            // Filter by position if provided
+            if (!string.IsNullOrEmpty(position))
+            {
+                query = query.Where(e => e.Position == position);
+            }
+
+            // Filter by restaurantId if provided
+            if (restaurantId.HasValue)
+            {
+                query = query.Where(e => e.RestaurantId == restaurantId);
+            }
+
+            // Filter by name if provided
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(e => e.Name.Contains(name));
+            }
+
+            var employees = query.Select(EmployeeDto.MapToDto).ToList();
 
             if (employees == null || !employees.Any())
             {
                 return NotFound();
             }
 
-            var employeesDto = employees.Select(EmployeeDto.MapToDto).ToList();
+            return Ok(employees);
 
-            return employeesDto;
         }
 
         // GET api/<EmployeeController>/5

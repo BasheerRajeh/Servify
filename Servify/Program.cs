@@ -49,9 +49,18 @@ builder.Services.AddControllersWithViews()
 
 
 builder.Services.AddControllers();
+
+builder.Services.AddMemoryCache();
+//For Redis Caching
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:44301";
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 

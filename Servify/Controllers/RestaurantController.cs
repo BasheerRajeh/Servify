@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Servify.Data;
 using Servify.DTOs;
 using Servify.Models;
 using System.Linq;
+using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,11 +20,16 @@ namespace Servify.Controllers
     {
         private readonly ServifyDbContext _context;
         private readonly ILogger<RestaurantController> _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _distributedCache;
 
-        public RestaurantController(ServifyDbContext context, ILogger<RestaurantController> logger)
+
+        public RestaurantController(ServifyDbContext context, ILogger<RestaurantController> logger, IMemoryCache memoryCache, IDistributedCache distributedCache)
         {
             _context = context;
             _logger = logger;
+            _memoryCache = memoryCache;
+            _distributedCache = distributedCache;
         }
 
         // GET: api/<Restaurant>
@@ -36,8 +45,37 @@ namespace Servify.Controllers
 
             var restaurantDtos = restaurants.Select(RestaurantDto.MapToDto).ToList();
             return restaurantDtos;
+        }
+
+        // GET: api/<Restaurant>/caching
+        [HttpGet("caching")]
+        public async Task<ActionResult<IEnumerable<RestaurantDto>>> GetWithCaching()
+        {
+            var cacheKey = "restaurantList";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<RestaurantDto> restaurantDtos))
+            {
+                var restaurants = await _context.Restaurants.Include(_ => _.Employees).ToListAsync();
+
+                if (restaurants == null || !restaurants.Any())
+                {
+                    return NotFound();
+                }
+
+                restaurantDtos = restaurants.Select(RestaurantDto.MapToDto).ToList();
+
+                var cacheExpiryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddMinutes(5),
+                    Priority = CacheItemPriority.High,
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+                _memoryCache.Set(cacheKey, restaurantDtos, cacheExpiryOptions);
+            }
+
+            return restaurantDtos;
 
         }
+
 
         // GET api/<Restaurant>/5
         [HttpGet("{id}")]

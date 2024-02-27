@@ -28,7 +28,9 @@ namespace Servify.Controllers
             [FromQuery] decimal? maxSalary,
             [FromQuery] string? position,
             [FromQuery] int? restaurantId,
-            [FromQuery] string? name)
+            [FromQuery] string? name, 
+            [FromQuery] string? sortBy = "name",
+            [FromQuery] string sortOrder = "asc")
         {
 
             IQueryable<Employee> query = _context.Employees;
@@ -61,6 +63,22 @@ namespace Servify.Controllers
             if (!string.IsNullOrEmpty(name))
             {
                 query = query.Where(e => e.Name.Contains(name));
+            }
+
+            // Sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy.ToLower())
+                {
+                    case "salary":
+                        query = sortOrder.ToLower() == "desc" ? query.OrderByDescending(e => e.Salary) : query.OrderBy(e => e.Salary);
+                        break;
+                    case "name":
+                        query = sortOrder.ToLower() == "desc" ? query.OrderByDescending(e => e.Name) : query.OrderBy(e => e.Name);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             var employees = query.Select(EmployeeDto.MapToDto).ToList();

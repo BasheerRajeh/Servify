@@ -18,5 +18,6 @@ namespace Servify.Data
 
         public DbSet<Restaurant> Restaurants{ get; set; }
         public DbSet<Employee> Employees{ get; set; }
+        public DbSet<Document> Documents { get; set; }
     }
 }
